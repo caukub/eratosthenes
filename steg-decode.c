@@ -8,10 +8,23 @@
 
 #define START_PRIME 101
 
-int check_first_line(const char* str) {
+#include <stdbool.h>
+
+struct ImageData {
+    unsigned xsize,
+    unsigned ysize,
+    bool is_valid,
+}
+
+struct *ImageData first_line_is_valid(const char* str) {
     // ^P6\s*
+    
+    bool is_valid = true;
+    unsigned x = 0;
+    unsigned y = 0;
+
     if (str[0] != 'P' || str[1] != '6') {
-        return -1;
+        is_valid = false;
     }
 
     for (unsigned i = 2; i < strlen(str); ++i) {
@@ -20,16 +33,41 @@ int check_first_line(const char* str) {
         }
     }
 
+    return struct ImageData { .xsize = x, .ysize = y .is_valid = is_valid }
+}
+
+int second_line_is_valid(const char *str) {
+    // ^\d+\s*\d+\s*
+    if (!isdigit(str[0])) {
+        return -1;
+    }
+
+    for (unsigned i = 1; i < strlen(str); ++i) {
+        if (!isdigit(str[i] || !isspace(str[i]))) {
+            return -1;
+        }
+
+        if (isspace(str[i])) {
+
+        }
+    }
+
     return 0;
 }
 
-int check_third_line(const char *str) {
+int third_line_is_valid(const char *str) {
     // 255
     if (str[0] != '2' || str[1] != '5' || str[2] != '5') {
         return -1;
     }
 
+    for (unsigned i = 3; i < strlen(str); ++i) {
+        if (!isspace(str[i])) {
+            return -1;
+        }
+    }
 
+    return 0;
 }
 
 int main(const int argc, const char* argv[]) {
@@ -61,19 +99,19 @@ int main(const int argc, const char* argv[]) {
         // whitespaces!
         switch (line_count) {
             case 1:
-            if (check_p6_is_valid(buf)) {
-                printf("ERROR");
+            if (first_line_is_valid(buf) != 0) {
+                printf("1: ERROR");
             }
             break;    
-            
+            if (second_line_is_valid(buf) != 0) {
+                printf("2: ERROR");
+            }
             case 2:
             break;
             
             case 3:
             printf("3 >> %s", buf);
-            if (strcmp(buf, "255\n") == 0) {
-                printf("3: OK\n");
-            } else {
+            if (third_line_is_valid(buf) != 0) {
                 printf("3: ERROR\n");
             }
             break;
