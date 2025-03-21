@@ -3,6 +3,8 @@
 #include "eratosthenes.h"
 #include "error.h"
 #include "utf8_check.h"
+#include <string.h>
+#include <ctype.h>
 
 #define START_PRIME 101
 
@@ -32,13 +34,23 @@ int main(const int argc, const char* argv[]) {
         printf("%s", buf);
         line_count++;
 
+        // whitespaces!
         switch (line_count) {
             case 1:
-            printf("t\n");
+            if (strcmp(buf, "P6")) {
+                printf("spravne\n");
+            }
             break;    
-            case 2:
-            printf("u\n");
+            
+            case 2: {
+            unsigned x;
+            unsigned y;
+            int scan;
+            scan = scanf("%d %d", &x, &y);
+            printf("%d %d %d\n", x, y, scan);
             break;
+            }
+            
             case 3:
             printf("v\n");
             break;
