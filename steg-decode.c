@@ -8,17 +8,18 @@
 
 #define START_PRIME 101
 
-void remove_whitespace(char* str) {
-    int i = 0; j = 0;
-
-    while (str[i]) {
-        if (!isspace(str[i])) {
-            str[j++] = str[i];
-        }
-        i++;
+int check_p6_is_valid(const char* str) {
+    if (str[0] != 'P' || str[1] != '6') {
+        return -1;
     }
 
-    str[j] = '\0';
+    for (unsigned i = 2; i < strlen(str); ++i) {
+        if (!isspace(str[i])) {
+            return -1;
+        }
+    }
+
+    return 0;
 }
 
 int main(const int argc, const char* argv[]) {
@@ -50,22 +51,21 @@ int main(const int argc, const char* argv[]) {
         // whitespaces!
         switch (line_count) {
             case 1:
-            if (strcmp(buf, "P6")) {
-                printf("spravne\n");
+            if (check_p6_is_valid(buf)) {
+                printf("AAA");
             }
             break;    
             
-            case 2: {
-            unsigned x;
-            unsigned y;
-            int scan;
-            scan = scanf("%d %d", &x, &y);
-            printf("%d %d %d\n", x, y, scan);
+            case 2:
             break;
-            }
             
             case 3:
-            printf("v\n");
+            printf("3 >> %s", buf);
+            if (strcmp(buf, "255\n") == 0) {
+                printf("3: OK\n");
+            } else {
+                printf("3: ERROR\n");
+            }
             break;
         }
     }

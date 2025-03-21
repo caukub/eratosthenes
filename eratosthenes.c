@@ -23,7 +23,7 @@ void Eratosthenes(bitset_t bitset) {
 
 int main(void) {
     clock_t start = clock();
-    bitset_create(p, 333000111);
+    bitset_create(p, 333000001);
 
     Eratosthenes(p);
 
