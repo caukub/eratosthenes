@@ -10,21 +10,10 @@
 
 #include <stdbool.h>
 
-struct ImageData {
-    unsigned xsize,
-    unsigned ysize,
-    bool is_valid,
-}
-
-struct *ImageData first_line_is_valid(const char* str) {
+int first_line_is_valid(const char* str) {
     // ^P6\s*
-    
-    bool is_valid = true;
-    unsigned x = 0;
-    unsigned y = 0;
-
     if (str[0] != 'P' || str[1] != '6') {
-        is_valid = false;
+        return -1;
     }
 
     for (unsigned i = 2; i < strlen(str); ++i) {
@@ -33,26 +22,76 @@ struct *ImageData first_line_is_valid(const char* str) {
         }
     }
 
-    return struct ImageData { .xsize = x, .ysize = y .is_valid = is_valid }
+    return 0;
 }
 
-int second_line_is_valid(const char *str) {
+struct ImageData {
+    unsigned xsize;
+    unsigned ysize;
+    bool is_valid
+};
+
+struct ImageData get_image_data(const char *str) {
+    bool is_valid = true;
+
     // ^\d+\s*\d+\s*
     if (!isdigit(str[0])) {
-        return -1;
+        is_valid = false;
     }
+
+    // Image limit of 16 000
+    char x_array[5] = {'\0', '\0', '\0', '\0', '\0'};
+    char y_array[5] = {'\0', '\0', '\0', '\0', '\0'};
+
+    bool whitespace_reached = false;
+    unsigned char x_count = 0;
+    unsigned char y_count = 0;
+
+    bool only_whitespaces_left = false;
 
     for (unsigned i = 1; i < strlen(str); ++i) {
-        if (!isdigit(str[i] || !isspace(str[i]))) {
-            return -1;
+        if (only_whitespaces_left && !isspace(str[i])) {
+            is_valid = false;
         }
 
-        if (isspace(str[i])) {
+        if (!isdigit(str[i] || !isspace(str[i]))) {
+            is_valid = false;
+        }
 
+        if (!whitespace_reached) {
+            if (!isspace(str[i])) {
+                x_array[x_count] = str[i];
+                x_count++;
+            }
+        } else {
+            if (!isspace(str[i])) {
+                y_array[y_count] = str[i];
+                y_count++;
+            } else {
+                only_whitespaces_left = true;
+            }
         }
     }
 
-    return 0;
+    if (x_count > 5 || y_count > 5) {
+        is_valid = false;
+    }
+
+    for (unsigned i = 0; i < 5; ++i) {
+        if (x_array[i] == '\0') {
+            break;
+        }
+    } 
+
+    unsigned x = 0;
+    unsigned y = 0;
+
+    struct ImageData image_data;
+    image_data.xsize = x;
+    image_data.ysize = y;
+    image_data.is_valid = is_valid;
+
+    return image_data;
 }
 
 int third_line_is_valid(const char *str) {
@@ -102,11 +141,16 @@ int main(const int argc, const char* argv[]) {
             if (first_line_is_valid(buf) != 0) {
                 printf("1: ERROR");
             }
-            break;    
-            if (second_line_is_valid(buf) != 0) {
-                printf("2: ERROR");
+            break;
+            case 2: {
+            struct ImageData image_data = get_image_data(buf);
+
+            printf("\n%d %d %d\n", image_data.is_valid, image_data.xsize, image_data.ysize);
+            
+            if (!image_data.is_valid) {
+                printf("2: ERROR\n");
             }
-            case 2:
+            }
             break;
             
             case 3:
