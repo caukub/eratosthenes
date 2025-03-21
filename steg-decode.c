@@ -8,6 +8,19 @@
 
 #define START_PRIME 101
 
+void remove_whitespace(char* str) {
+    int i = 0; j = 0;
+
+    while (str[i]) {
+        if (!isspace(str[i])) {
+            str[j++] = str[i];
+        }
+        i++;
+    }
+
+    str[j] = '\0';
+}
+
 int main(const int argc, const char* argv[]) {
     if (argc != 2) {
         printf("Nesprávný počet argumentů. Program očekává pouze argument <soubor>");
