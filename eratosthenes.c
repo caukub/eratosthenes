@@ -23,14 +23,12 @@ void Eratosthenes(bitset_t bitset) {
 
 int main(void) {
     clock_t start = clock();
-    bitset_create(p, 101);
+    bitset_create(p, 333000111);
 
     Eratosthenes(p);
 
     unsigned last_ten_primes[10] = {0};
     unsigned primes_count = 0;
-
-    warning("cs %d\n", 3);
 
     for (unsigned long i = 0; i < bitset_size(p); ++i) {
         if (bitset_getbit(p, i)) {

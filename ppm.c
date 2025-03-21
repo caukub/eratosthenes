@@ -1,12 +1,18 @@
 #include "ppm.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+
 struct ppm *ppm_read(const char *filename) {
-    /*  načte obsah PPM souboru do touto funkcí dynamicky
-        alokované struktury. Při chybě formátu použije funkci warning
-        a vrátí NULL.  Pozor na "memory leaks".
-        */
+  FILE *ppm_file = fopen("du1-obrazek.ppm", "r");
+
+  if (ppm_file == NULL) {
+    // err
+  }
+
+  return NULL;
 }
 
 void ppm_free(struct ppm *p) {
-    /*         uvolní paměť dynamicky alokovanou v ppm_read */
+    free(p);
 }
