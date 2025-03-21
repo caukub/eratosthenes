@@ -8,7 +8,8 @@
 
 #define START_PRIME 101
 
-int check_p6_is_valid(const char* str) {
+int check_first_line(const char* str) {
+    // ^P6\s*
     if (str[0] != 'P' || str[1] != '6') {
         return -1;
     }
@@ -20,6 +21,15 @@ int check_p6_is_valid(const char* str) {
     }
 
     return 0;
+}
+
+int check_third_line(const char *str) {
+    // 255
+    if (str[0] != '2' || str[1] != '5' || str[2] != '5') {
+        return -1;
+    }
+
+
 }
 
 int main(const int argc, const char* argv[]) {
@@ -52,7 +62,7 @@ int main(const int argc, const char* argv[]) {
         switch (line_count) {
             case 1:
             if (check_p6_is_valid(buf)) {
-                printf("AAA");
+                printf("ERROR");
             }
             break;    
             
@@ -73,23 +83,6 @@ int main(const int argc, const char* argv[]) {
     if (line_count != 3) {
         printf("chyba");
     }
-
-    int c;
-    unsigned count = 0;
-
-    /*
-    while ((c = getc(ppm_file)) != EOF) {
-        count++;
-
-        if (c == '\0') {
-            //printf("jj\n");
-        }
-
-        if (count == 101) {
-           // printf("%d", c);
-        }
-    }
-    */
 
     fclose(ppm_file);
 }
