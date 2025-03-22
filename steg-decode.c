@@ -28,23 +28,25 @@ int first_line_is_valid(const char* str) {
 struct ImageData {
     unsigned xsize;
     unsigned ysize;
-    bool is_valid
+    bool is_valid;
 };
 
 struct ImageData get_image_data(const char *str) {
+    // ^\d+\s*\d+\s*
     bool is_valid = true;
 
-    // ^\d+\s*\d+\s*
+    // Image limit of 16 000
+    char x_array[6] = {'\0', '\0', '\0', '\0', '\0', '\0', };
+    char y_array[6] = {'\0', '\0', '\0', '\0', '\0', '\0', };
+
     if (!isdigit(str[0])) {
         is_valid = false;
+    } else {
+        x_array[0] = str[0];
     }
 
-    // Image limit of 16 000
-    char x_array[5] = {'\0', '\0', '\0', '\0', '\0'};
-    char y_array[5] = {'\0', '\0', '\0', '\0', '\0'};
-
     bool whitespace_reached = false;
-    unsigned char x_count = 0;
+    unsigned char x_count = 1;
     unsigned char y_count = 0;
 
     bool only_whitespaces_left = false;
@@ -54,18 +56,24 @@ struct ImageData get_image_data(const char *str) {
             is_valid = false;
         }
 
-        if (!isdigit(str[i] || !isspace(str[i]))) {
-            is_valid = false;
-        }
-
         if (!whitespace_reached) {
             if (!isspace(str[i])) {
-                x_array[x_count] = str[i];
+                if (str[i] == '0') {
+                    x_array[x_count] = '0';
+                } else {
+                    x_array[x_count] = str[i];
+                }
                 x_count++;
+            } else {
+                whitespace_reached = true;
             }
         } else {
             if (!isspace(str[i])) {
-                y_array[y_count] = str[i];
+                if (str[i] == '0') {
+                    y_array[y_count] = '0';
+                } else {
+                    y_array[y_count] = str[i];
+                }
                 y_count++;
             } else {
                 only_whitespaces_left = true;
@@ -73,18 +81,29 @@ struct ImageData get_image_data(const char *str) {
         }
     }
 
-    if (x_count > 5 || y_count > 5) {
+    if (x_count > 5 || y_count > 5 || !whitespace_reached) {
         is_valid = false;
     }
 
-    for (unsigned i = 0; i < 5; ++i) {
-        if (x_array[i] == '\0') {
-            break;
-        }
-    } 
+    // TODO: validace velikosti
 
-    unsigned x = 0;
-    unsigned y = 0;
+    unsigned x;
+    unsigned y;
+
+    //x = atoi(x_array);
+    //y = atoi(y_array);
+    printf("\n");
+    for (unsigned i = 0; i < 6; ++i) {
+        if (x_array[i] == '\0') {
+            printf(" 0x0 ");
+        } else {
+            printf(" %d ", x_array[i]);
+        }
+    }
+    printf("\n");
+
+    x = atoi(x_array);
+    y = atoi(y_array);
 
     struct ImageData image_data;
     image_data.xsize = x;
@@ -132,7 +151,6 @@ int main(const int argc, const char* argv[]) {
     unsigned line_count = 0;
 
     while (line_count < 3 && fgets(buf, sizeof(buf), ppm_file) != NULL) {
-        printf("%s", buf);
         line_count++;
 
         // whitespaces!
@@ -144,9 +162,9 @@ int main(const int argc, const char* argv[]) {
             break;
             case 2: {
             struct ImageData image_data = get_image_data(buf);
-
-            printf("\n%d %d %d\n", image_data.is_valid, image_data.xsize, image_data.ysize);
             
+            printf(">> %d x %d\n", image_data.xsize, image_data.ysize);
+
             if (!image_data.is_valid) {
                 printf("2: ERROR\n");
             }
@@ -154,7 +172,6 @@ int main(const int argc, const char* argv[]) {
             break;
             
             case 3:
-            printf("3 >> %s", buf);
             if (third_line_is_valid(buf) != 0) {
                 printf("3: ERROR\n");
             }
