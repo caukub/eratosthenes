@@ -1,7 +1,6 @@
 typedef unsigned long *bitset_t;
 
 typedef unsigned long bitset_index_t;
-typedef unsigned long bitset_index_t;
 
 #include <limits.h>
 
@@ -28,13 +27,14 @@ typedef unsigned long bitset_index_t;
   name[0] = size;
 
 #define bitset_alloc(name, size) \
-  assert(size < 999999); \
+  assert(size < 500000000); \
     \
   bitset_t name = calloc(bits_to_bitset_size(size), sizeof(bitset_index_t)); \
   if (name == NULL) { \
       printf("bitset_alloc: Chyba alokace paměti"); \
   } \
   name[0] = size;
+ 
 #ifdef USE_INLINE
 
 #include <stdbool.h>
@@ -82,6 +82,9 @@ inline bitset_index_t bitset_getbit(bitset_t bitset, unsigned idx) {
 } while (0);
 
 #define bitset_setbit(name, idx, set_one) do { \
+  if (idx > bitset_size(name)) { \
+    error_exit("bitset_setbit: Index %lu mimo rozsah 0..%lu", (unsigned long)idx, (unsigned long)bitset_size(name)); \
+  } \
   bitset_index_t mask = set_one ? (1UL << get_bitset_of_bit(idx)) : ~(1UL << get_bitset_of_bit(idx)); \
     \
   if (set_one) { \
