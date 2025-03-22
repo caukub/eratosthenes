@@ -93,6 +93,8 @@ struct ImageData get_image_data(const char *str) {
     //x = atoi(x_array);
     //y = atoi(y_array);
     printf("\n");
+    
+    /*
     for (unsigned i = 0; i < 6; ++i) {
         if (x_array[i] == '\0') {
             printf(" 0x0 ");
@@ -101,14 +103,12 @@ struct ImageData get_image_data(const char *str) {
         }
     }
     printf("\n");
+    */
 
     x = atoi(x_array);
     y = atoi(y_array);
 
-    struct ImageData image_data;
-    image_data.xsize = x;
-    image_data.ysize = y;
-    image_data.is_valid = is_valid;
+    struct ImageData image_data = { .xsize = x, .ysize = y, .is_valid = is_valid };
 
     return image_data;
 }
