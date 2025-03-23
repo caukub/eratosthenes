@@ -47,7 +47,7 @@ void allocate(const char* file_name, unsigned xsize, unsigned ysize) {
      return;
    }
 
-   const unsigned bytes = (3 * 480 * 154);
+   const unsigned bytes = (3 * xsize * ysize);
 
    unsigned char *ppm_data = malloc(bytes);
 
@@ -166,8 +166,8 @@ int third_line_is_valid(const char *str) {
         return -1;
     }
 
-    for (unsigned i = 3; i < strlen(str); ++i) {
-        if (!isspace(str[i])) {
+    for (unsigned idx = 3; idx < strlen(str); ++idx) {
+        if (!isspace(str[idx])) {
             return -1;
         }
     }
@@ -175,16 +175,17 @@ int third_line_is_valid(const char *str) {
     return 0;
 }
 
-int main(const int argc, const char* argv[]) {
+int main(const int argc, char* argv[]) {
     if (argc != 2) {
         printf("Nesprávný počet argumentů. Program očekává pouze argument <soubor>");
         return 0;
     }
 
     const char* file_name = argv[1];
+    unsigned char* file_name_x = (unsigned char*)file_name;
 
-    if (utf8_check(file_name) != NULL) {
-        printf("CHYBA!\n");
+    if (utf8_check(file_name_x) != NULL) {
+        printf("UTF-8 is invalid!\n");
     }
 
     FILE* ppm_file = fopen(file_name, "r");
@@ -194,7 +195,7 @@ int main(const int argc, const char* argv[]) {
         return 1;
     }
 
-    unsigned char buf[4096];
+    char buf[4096];
     unsigned line_count = 0;
 
     struct ImageData image_data;
