@@ -71,7 +71,7 @@ void allocate(const char* file_name, unsigned xsize, unsigned ysize) {
        }
    }
 
-   bitset_create(bitset, bytes);
+   bitset_alloc(bitset, bytes);
    
    Eratosthenes(bitset);
 
@@ -80,7 +80,7 @@ void allocate(const char* file_name, unsigned xsize, unsigned ysize) {
    unsigned char current_byte = 0;
    int bit_count = 0;
 
-    for (unsigned idx = 1; idx < bytes; idx++) {
+    for (unsigned idx = 1; idx < bytes; ++idx) {
         if (idx >= START_PRIME && bitset_getbit(bitset, idx)) {
             unsigned char color_value = ppm_data[idx+1];
             unsigned char bit = color_value & 1;
@@ -88,7 +88,7 @@ void allocate(const char* file_name, unsigned xsize, unsigned ysize) {
             current_byte |= (bit << bit_count);
             bit_count++;
 
-            if (bit_count == 8) {
+            if (bit_count == CHAR_BIT) {
                 if (current_byte == '\0') {
                     break;
                 }
@@ -99,6 +99,7 @@ void allocate(const char* file_name, unsigned xsize, unsigned ysize) {
         }
     }
    
+   bitset_free(bitset);
 
    fclose(image_file);
    free(ppm_data);
