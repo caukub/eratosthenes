@@ -53,6 +53,10 @@ inline void bitset_fill(bitset_t bitset, bool fill_ones) {
 }
 
 inline void bitset_setbit(bitset_t bitset, unsigned idx, bool set_one) {
+  if (idx > bitset_size(bitset)) {
+    error_exit("bitset_setbit: Index %lu mimo rozsah 0..%lu", (unsigned long)idx, (unsigned long)bitset_size(bitset));
+  }
+
   unsigned long mask = set_one ? (1UL << get_bitset_of_bit(idx)) : ~(1UL << get_bitset_of_bit(idx));
 
   if (set_one) {
@@ -63,6 +67,9 @@ inline void bitset_setbit(bitset_t bitset, unsigned idx, bool set_one) {
 }
 
 inline bitset_index_t bitset_getbit(bitset_t bitset, unsigned idx) {
+  if (idx > bitset_size(bitset)) {
+    error_exit("bitset_getbit: Index %lu mimo rozsah 0..%lu", (unsigned long)idx, (unsigned long)bitset_size(bitset));
+  }
   return ((bitset[get_bitset_index_of_bit(idx)] >> get_bitset_of_bit(idx)) & 1);
 }
 
@@ -94,6 +101,6 @@ inline bitset_index_t bitset_getbit(bitset_t bitset, unsigned idx) {
   } \
 } while (0); \
 
-#define bitset_getbit(name, idx) ((name[get_bitset_index_of_bit(idx)] >> get_bitset_of_bit(idx)) & 1)
+#define bitset_getbit(name, idx) (idx > bitset_size(name) ? (error_exit("bitset_setbit: Index %lu mimo rozsah 0..%lu", (unsigned long)idx, (unsigned long)bitset_size(name)),0) : ((name[get_bitset_index_of_bit(idx)] >> get_bitset_of_bit(idx)) & 1))
 
 #endif

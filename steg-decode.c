@@ -1,13 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 #include <stdbool.h>
+#include <ctype.h>
+#include <string.h>
 
-#include "eratosthenes.h"
 #include "error.h"
 #include "utf8_check.h"
-#include "bitset.h"
+#include "eratosthenes.h"
+
+struct ppm {
+    unsigned xsize;
+    unsigned ysize;
+    char data[];
+};
 
 #define START_PRIME 101
 
@@ -32,36 +37,71 @@ struct ImageData {
     bool is_valid;
 };
 
-void allocate_memory_for_image(const unsigned char byte_count) {
-    bitset_create(p, (3 * 480 * 154)+1);
+#define BUFFER_SIZE 4096
 
-    Eratosthenes(p);
+void allocate(const char* file_name, unsigned xsize, unsigned ysize) {
+   FILE *image_file = fopen(file_name, "r");
 
-    FILE *file = fopen("du1-obrazek.ppm", "r");
+   if (image_file == NULL) {
+     printf("Při otevírání souboru nastala chyba");
+     return;
+   }
 
-    if (file == NULL) {
-        printf("err");
-    }
+   const unsigned bytes = (3 * 480 * 154);
 
-    int c;
-    int count = 0;
-    int count2 = 1;
-    while ((c = fgetc(file)) != EOF || c == '\0') {
-        if (count >= START_PRIME) {
-            count2++;
-        }
-        if (bitset_getbit(p, count) && count >= START_PRIME) {
-            if (count >= 0) {
-                printf("%u\n", count2);
+   unsigned char *ppm_data = malloc(bytes);
+
+   if (ppm_data == NULL) {
+     printf("Memory allocation failed\n");
+     return;
+   }
+
+   int c;
+   unsigned count = 0;
+   unsigned nl = 0;
+
+   while ((c = fgetc(image_file)) != EOF) {
+       if (c == '\n') {
+           nl++;
+       }
+
+       if (nl > 2) {
+        ppm_data[count] = c;
+        count++;
+       }
+   }
+
+   bitset_create(bitset, bytes);
+   
+   Eratosthenes(bitset);
+
+   unsigned counter = 0;
+
+   unsigned char current_byte = 0;
+   int bit_count = 0;
+
+    for (unsigned idx = 1; idx < bytes; idx++) {
+        if (idx >= START_PRIME && bitset_getbit(bitset, idx)) {
+            unsigned char color_value = ppm_data[idx+1];
+            unsigned char bit = color_value & 1;
+            
+            current_byte |= (bit << bit_count);
+            bit_count++;
+
+            if (bit_count == 8) {
+                if (current_byte == '\0') {
+                    break;
+                }
+                printf("%c", current_byte);
+                current_byte = 0;
+                bit_count = 0;
             }
         }
-        count++;
     }
+   
 
-    fclose(file);
-
-    //unsigned char *image = malloc(sizeof(unsigned char) * byte_count);
-    //free(image);
+   fclose(image_file);
+   free(ppm_data);
 }
 
 // doladit checkovani validity
@@ -69,7 +109,6 @@ struct ImageData get_image_data(const char *str) {
     // ^\d+\s*\d+\s*
     bool is_valid = true;
 
-    // Image limit of 16 000
     char x_array[6] = {'\0', '\0', '\0', '\0', '\0', '\0', };
     char y_array[6] = {'\0', '\0', '\0', '\0', '\0', '\0', };
 
@@ -80,6 +119,7 @@ struct ImageData get_image_data(const char *str) {
     }
 
     bool whitespace_reached = false;
+
     unsigned char x_count = 1;
     unsigned char y_count = 0;
 
@@ -107,17 +147,12 @@ struct ImageData get_image_data(const char *str) {
         }
     }
 
-    if (x_count > 5 || y_count > 5 || !whitespace_reached) {
+    unsigned x = atoi(x_array);;
+    unsigned y = atoi(y_array);;
+
+    if (x_count > 5 || y_count > 5 || !whitespace_reached || x > 16000 || y > 16000) {
         is_valid = false;
     }
-
-    // TODO: validace velikosti
-
-    unsigned x;
-    unsigned y;
-
-    x = atoi(x_array);
-    y = atoi(y_array);
 
     struct ImageData image_data = { .xsize = x, .ysize = y, .is_valid = is_valid };
 
@@ -161,7 +196,9 @@ int main(const int argc, const char* argv[]) {
     unsigned char buf[4096];
     unsigned line_count = 0;
 
-    while (line_count < 3 && fgets(buf, sizeof(buf), ppm_file) != NULL) {
+    struct ImageData image_data;
+
+    while (line_count < 4 && fgets(buf, sizeof(buf), ppm_file) != NULL) {
         line_count++;
 
         switch (line_count) {
@@ -171,16 +208,10 @@ int main(const int argc, const char* argv[]) {
             }
             break;
             case 2: {
-            struct ImageData image_data = get_image_data(buf);
-            
-            //printf(">> %d x %d\n", image_data.xsize, image_data.ysize);
-
-            unsigned char rgb_byte_count = (3 * image_data.xsize * image_data.ysize) + 1;
-            //printf("allocating\n");
-            allocate_memory_for_image(rgb_byte_count);
+            image_data = get_image_data(buf);
 
             if (!image_data.is_valid) {
-                error_exit("-");
+                error_exit("ERRORRR");
             }
             }
             break;
@@ -190,14 +221,15 @@ int main(const int argc, const char* argv[]) {
                 printf("3: ERROR\n");
             }
             break;
+            default:
+            allocate(file_name, image_data.xsize, image_data.ysize);
+            break;
         }
     }
 
     if (line_count < 3) {
         printf("image is invalid is missing (lines missing)");
     }
-
-
 
     fclose(ppm_file);
 }
