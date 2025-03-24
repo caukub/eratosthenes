@@ -1,3 +1,8 @@
+// steg-decode.c
+// Řešení IJC-DU1, příklad B, 24. 3. 2025
+// Autor: Jakub Trumpeš (xtrumpj00), FIT
+// Přeloženo: Apple clang version 16.0.0 (clang-1600.0.26.3)
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -5,16 +10,11 @@
 #include <string.h>
 
 #include "error.h"
-#include "utf8_check.h"
+#include "utf8-check.h"
 #include "eratosthenes.h"
 
-struct ppm {
-    unsigned xsize;
-    unsigned ysize;
-    char data[];
-};
-
-#define START_PRIME 101
+#define PRIME_START_INDEX 101
+#define COLOR_COMPONENTS 3
 
 int first_line_is_valid(const char* str) {
     // ^P6\s*
@@ -47,7 +47,7 @@ void allocate(const char* file_name, unsigned xsize, unsigned ysize) {
      return;
    }
 
-   const unsigned bytes = (3 * xsize * ysize);
+   const unsigned bytes = (COLOR_COMPONENTS * xsize * ysize);
 
    unsigned char *ppm_data = malloc(bytes);
 
@@ -75,29 +75,43 @@ void allocate(const char* file_name, unsigned xsize, unsigned ysize) {
    
    Eratosthenes(bitset);
 
-   unsigned counter = 0;
+   unsigned char_counter = 0;
 
-   unsigned char current_byte = 0;
-   int bit_count = 0;
+   unsigned char byte = 0;
+   unsigned bit_count = 0;
 
-    for (unsigned idx = 1; idx < bytes; ++idx) {
-        if (idx >= START_PRIME && bitset_getbit(bitset, idx)) {
-            unsigned char color_value = ppm_data[idx+1];
-            unsigned char bit = color_value & 1;
-            
-            current_byte |= (bit << bit_count);
-            bit_count++;
-
-            if (bit_count == CHAR_BIT) {
-                if (current_byte == '\0') {
-                    break;
+   unsigned char decoded_message[1024] = {0};
+   
+   for (unsigned idx = PRIME_START_INDEX; idx < bytes; ++idx) {
+    if (bitset_getbit(bitset, idx)) {
+        unsigned char color_value = ppm_data[idx+1];
+        unsigned char lsb = color_value & 1;
+        
+        byte |= (lsb << bit_count);
+        bit_count++;
+        
+        if (bit_count == CHAR_BIT) {
+            if (byte == '\0') {
+                break;
                 }
-                printf("%c", current_byte);
-                current_byte = 0;
+                decoded_message[char_counter] = byte;
+                byte = 0;
                 bit_count = 0;
-            }
+                
+                char_counter++;
+                
         }
     }
+   }
+    
+    
+    decoded_message[char_counter] = '\0';
+
+    if (utf8_check(decoded_message) != NULL) {
+        printf("UTF-8 is invalid!\n");
+    }
+    
+   printf("%s", decoded_message);
    
    bitset_free(bitset);
 
@@ -162,8 +176,8 @@ struct ImageData get_image_data(const char *str) {
 
 int third_line_is_valid(const char *str) {
     // 255
-    if (str[0] != '2' || str[1] != '5' || str[2] != '5') {
-        return -1;
+    if (!(str[0] == '2' && str[1] == '5' && str[2] == '5')) {
+        return -1;        
     }
 
     for (unsigned idx = 3; idx < strlen(str); ++idx) {
@@ -175,18 +189,13 @@ int third_line_is_valid(const char *str) {
     return 0;
 }
 
-int main(const int argc, char* argv[]) {
+int main(const int argc, const char* argv[]) {
     if (argc != 2) {
         printf("Nesprávný počet argumentů. Program očekává pouze argument <soubor>");
         return 0;
     }
 
     const char* file_name = argv[1];
-    unsigned char* file_name_x = (unsigned char*)file_name;
-
-    if (utf8_check(file_name_x) != NULL) {
-        printf("UTF-8 is invalid!\n");
-    }
 
     FILE* ppm_file = fopen(file_name, "r");
 
@@ -200,38 +209,38 @@ int main(const int argc, char* argv[]) {
 
     struct ImageData image_data;
 
-    while (line_count < 4 && fgets(buf, sizeof(buf), ppm_file) != NULL) {
+    while (line_count != 3 && fgets(buf, sizeof(buf), ppm_file) != NULL) {
         line_count++;
 
         switch (line_count) {
             case 1:
             if (first_line_is_valid(buf) != 0) {
-                printf("1: ERROR");
+                error_exit("1: err\n");
             }
             break;
             case 2: {
             image_data = get_image_data(buf);
 
             if (!image_data.is_valid) {
-                error_exit("ERRORRR");
+                error_exit("2: err\n");
             }
             }
             break;
             
             case 3:
             if (third_line_is_valid(buf) != 0) {
-                printf("3: ERROR\n");
+                error_exit("3: err\n");
             }
-            break;
-            default:
-            allocate(file_name, image_data.xsize, image_data.ysize);
             break;
         }
     }
 
-    if (line_count < 3) {
-        printf("image is invalid is missing (lines missing)");
-    }
-
     fclose(ppm_file);
+
+    if (line_count < 3) {
+        error_exit("(lines missing)");
+        return 1;
+    } else {
+        allocate(file_name, image_data.xsize, image_data.ysize);
+    }
 }

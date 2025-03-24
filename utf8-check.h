@@ -1,3 +1,8 @@
+// utf8_check.h
+// Řešení IJC-DU1, příklad B, 24. 3. 2025
+// Autor: Jakub Trumpeš (xtrumpj00), FIT
+// Přeloženo: Apple clang version 16.0.0 (clang-1600.0.26.3)
+
 /*
  * The utf8_check() function scans the '\0'-terminated string starting
  * at s. It returns a pointer to the first byte of the first malformed

@@ -1,3 +1,8 @@
+// primes.c
+// Řešení IJC-DU1, příklad A, 24. 3. 2025
+// Autor: Jakub Trumpeš (xtrumpj00), FIT
+// Přeloženo: Apple clang version 16.0.0 (clang-1600.0.26.3)
+
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -30,7 +35,7 @@ void print_last_ten_primes(bitset_t bitset) {
 
 int main(void) {
     clock_t start = clock();
-    bitset_create(p, 1000);
+    bitset_create(p, 333000001);
 
     Eratosthenes(p);
 
